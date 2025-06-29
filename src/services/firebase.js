@@ -15,7 +15,6 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// --- CORRECTED & COMPLETE Firestore Service Functions ---
 const getDocPath = (userId, collectionName, docId) => `users/${userId}/${collectionName}/${docId}`;
 const getCollectionPath = (userId, collectionName) => `users/${userId}/${collectionName}`;
 
@@ -29,7 +28,7 @@ export const addActivity = (userId, name, category) => addDoc(activitiesRef(user
 export const updateActivity = (userId, id, data) => updateDoc(doc(db, getCollectionPath(userId, 'activities'), id), data);
 export const deleteActivity = (userId, id) => deleteDoc(doc(db, getCollectionPath(userId, 'activities'), id));
 
-// Predefined Activities (NEWLY ADDED)
+// Predefined Activities (This is the new line)
 export const predefinedActivitiesRef = () => collection(db, 'predefined_activities');
 
 // Pomodoro Tasks

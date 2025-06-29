@@ -1,41 +1,40 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import React, { useMemo, useCallback } from 'react';
+import { useAppContext } from '../../context/AppContext';
+import { useCollection } from '../../hooks/useFirestore';
+import { predefinedActivitiesRef, activitiesRef, addActivity } from '../../services/firebase';
 
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET, // CORRECTED THIS LINE
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-};
+export default function ActivityLibrary() {
+    const { userId, showToast } = useAppContext();
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+    // Fetch the master list of predefined activities from the public collection
+    const { data: predefinedActivities } = useCollection(predefinedActivitiesRef);
 
-// --- COMPLETE Firestore Service Functions ---
-const getDocPath = (userId, collectionName, docId) => `users/${userId}/${collectionName}/${docId}`;
-const getCollectionPath = (userId, collectionName) => `users/${userId}/${collectionName}`;
+    // Fetch the user's personal list of activities to check which ones they already have
+    const userActivitiesRefFactory = useCallback(() => userId ? activitiesRef(userId) : null, [userId]);
+    const { data: userActivities } = useCollection(userActivitiesRefFactory);
 
-// Settings
-export const settingsRef = (userId) => doc(db, getDocPath(userId, 'settings', 'userSettings'));
-export const updateSettings = (userId, data) => setDoc(settingsRef(userId), data, { merge: true });
+    // Create a quick lookup set of the names of activities the user already has.
+    // The `|| []` prevents a crash if the user's activity list is still loading.
+    const userActivityNames = useMemo(() => new Set((userActivities || []).map(act => act.name)), [userActivities]);
 
-// Activities
-export const activitiesRef = (userId) => collection(db, getCollectionPath(userId, 'activities'));
-export const addActivity = (userId, name, category) => addDoc(activitiesRef(userId), { name, category: category || 'General', active: true, isCustom: true, timestamp: serverTimestamp() });
-export const updateActivity = (userId, id, data) => updateDoc(doc(db, getCollectionPath(userId, 'activities'), id), data);
-export const deleteActivity = (userId, id) => deleteDoc(doc(db, getCollectionPath(userId, 'activities'), id));
+    const handleAddFromLibrary = async (activity) => {
+        if (!userId) return;
+        try {
+            // Copy the predefined activity into the user's personal list
+            await addActivity(userId, activity.name, activity.category);
+            showToast(`'${activity.name}' added to your list!`, 'success');
+        } catch (e) {
+            console.error("Error adding activity from library:", e);
+            showToast('Failed to add activity.', 'error');
+        }
+    };
 
-// Predefined Activities
-export const predefinedActivitiesRef = () => collection(db, 'predefined_activities');
-
-// Pomodoro Tasks
-export const pomodoroTasksRef = (userId) => collection(db, getCollectionPath(userId, 'pomodoroTasks'));
-export const addPomodoroTask = (userId, task, pomodoroCount, durationSeconds) => addDoc(pomodoroTasksRef(userId), { task, pomodoroCountAtCompletion: pomodoroCount, durationSeconds, timestamp: serverTimestamp() });
-
-// Break Activities
-export const breakActivitiesRef = (userId) => collection(db, getCollectionPath(userId, 'breakActivitiesCompleted'));
-export const addBreakActivity = (userId, activity) => addDoc(breakActivitiesRef(userId), { activity, timestamp: serverTimestamp() });
+    return (
+        <div className="mt-8 p-4 border border-gray-700 rounded-lg">
+            <h3 className="text-xl font-bold mb-4 text-purple-300">Activity Library</h3>
+            <p className="text-gray-400 mb-4">Browse and add recommended activities to your personal list.</p>
+            <ul className="space-y-2 max-h-80 overflow-y-auto">
+                {predefinedActivities?.map((activity) => {
+                    const isAdded = userActivityNames.has(activity.name);
+                    return (
+                        <li key={activity.id} className="bg-gray-700 p-3 rounded-lg flex items-
