@@ -1,3 +1,4 @@
+// Please replace the entire file with this code to eliminate any typos.
 import React, { useMemo, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useCollection } from '../../hooks/useFirestore';
@@ -6,21 +7,15 @@ import { predefinedActivitiesRef, activitiesRef, addActivity } from '../../servi
 export default function ActivityLibrary() {
     const { userId, showToast } = useAppContext();
 
-    // Fetch the master list of predefined activities from the public collection
     const { data: predefinedActivities } = useCollection(predefinedActivitiesRef);
-
-    // Fetch the user's personal list of activities to check which ones they already have
     const userActivitiesRefFactory = useCallback(() => userId ? activitiesRef(userId) : null, [userId]);
     const { data: userActivities } = useCollection(userActivitiesRefFactory);
 
-    // Create a quick lookup set of the names of activities the user already has.
-    // The `|| []` prevents a crash if the user's activity list is still loading.
     const userActivityNames = useMemo(() => new Set((userActivities || []).map(act => act.name)), [userActivities]);
 
     const handleAddFromLibrary = async (activity) => {
         if (!userId) return;
         try {
-            // Copy the predefined activity into the user's personal list
             await addActivity(userId, activity.name, activity.category);
             showToast(`'${activity.name}' added to your list!`, 'success');
         } catch (e) {
@@ -37,4 +32,26 @@ export default function ActivityLibrary() {
                 {predefinedActivities?.map((activity) => {
                     const isAdded = userActivityNames.has(activity.name);
                     return (
-                        <li key={activity.id} className="bg-gray-700 p-3 rounded-lg flex items-
+                        <li key={activity.id} className="bg-gray-700 p-3 rounded-lg flex items-center justify-between">
+                            <div>
+                                <p className="text-lg text-white">{activity.name}</p>
+                                <p className="text-sm text-gray-400">{activity.category}</p>
+                            </div>
+                            <button
+                                onClick={() => handleAddFromLibrary(activity)}
+                                disabled={isAdded}
+                                className={`font-bold py-2 px-4 rounded-lg transition-colors ${
+                                    isAdded
+                                        ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                        : 'bg-teal-600 hover:bg-teal-700 text-white'
+                                }`}
+                            >
+                                {isAdded ? 'Added' : 'Add'}
+                            </button>
+                        </li>
+                    );
+                })}
+            </ul>
+        </div>
+    );
+}
