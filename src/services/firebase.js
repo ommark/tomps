@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeAuth, indexedDBLocalPersistence } from 'firebase/auth';
 import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -12,44 +12,41 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+
+// THIS IS THE KEY FIX: Initialize Auth with persistence from the start.
+export const auth = initializeAuth(app, {
+    persistence: indexedDBLocalPersistence
+});
+
 export const db = getFirestore(app);
 
+// --- The rest of the file remains the same ---
 const getDocPath = (userId, collectionName, docId) => `users/${userId}/${collectionName}/${docId}`;
 const getCollectionPath = (userId, collectionName) => `users/${userId}/${collectionName}`;
 
-// Settings
 export const settingsRef = (userId) => doc(db, getDocPath(userId, 'settings', 'userSettings'));
 export const updateSettings = (userId, data) => setDoc(settingsRef(userId), data, { merge: true });
 
-// Activities
 export const activitiesRef = (userId) => collection(db, getCollectionPath(userId, 'activities'));
 export const addActivity = (userId, name, category) => addDoc(activitiesRef(userId), { name, category: category || 'General', active: true, isCustom: true, timestamp: serverTimestamp() });
 export const updateActivity = (userId, id, data) => updateDoc(doc(db, getCollectionPath(userId, 'activities'), id), data);
 export const deleteActivity = (userId, id) => deleteDoc(doc(db, getCollectionPath(userId, 'activities'), id));
 
-// Predefined Activities
 export const predefinedActivitiesRef = () => collection(db, 'predefined_activities');
 
-// Pomodoro Tasks
 export const pomodoroTasksRef = (userId) => collection(db, getCollectionPath(userId, 'pomodoroTasks'));
 export const addPomodoroTask = (userId, task, pomodoroCount, durationSeconds) => addDoc(pomodoroTasksRef(userId), { task, pomodoroCountAtCompletion: pomodoroCount, durationSeconds, timestamp: serverTimestamp() });
 
-// Break Activities
 export const breakActivitiesRef = (userId) => collection(db, getCollectionPath(userId, 'breakActivitiesCompleted'));
 export const addBreakActivity = (userId, activity) => addDoc(breakActivitiesRef(userId), { activity, timestamp: serverTimestamp() });
 
-// --- ATOMIC SETUP FUNCTION ---
 export const initializeNewUser = async (userId, defaultSettings, starterActivities) => {
     const batch = writeBatch(db);
-
     const userSettingsRef = settingsRef(userId);
     batch.set(userSettingsRef, { ...defaultSettings, starterPackAdded: true });
-
     const userActivitiesRef = activitiesRef(userId);
     for (const activity of starterActivities) {
-        // THIS IS THE CORRECTED LINE:
-        const newActivityRef = doc(userActivitiesRef); // Create a new doc reference directly in the collection
+        const newActivityRef = doc(userActivitiesRef);
         batch.set(newActivityRef, {
             name: activity.name,
             category: activity.category,
@@ -58,6 +55,5 @@ export const initializeNewUser = async (userId, defaultSettings, starterActiviti
             timestamp: serverTimestamp()
         });
     }
-
     await batch.commit();
 };
