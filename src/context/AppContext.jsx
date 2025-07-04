@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'; // 1. Import useRef
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTimer } from '../hooks/useTimer';
 import { useDocument, useCollection } from '../hooks/useFirestore';
-import { settingsRef, updateSettings as updateSettingsService, predefinedActivitiesRef, activitiesRef, addActivity } from '../services/firebase';
+// CORRECTED: Added predefinedActivitiesRef to the import list
+import { settingsRef, activitiesRef, initializeNewUser, predefinedActivitiesRef } from '../services/firebase';
 import {
     DEFAULT_WORK_DURATION_MINUTES, DEFAULT_SHORT_BREAK_DURATION_MINUTES, DEFAULT_LONG_BREAK_DURATION_MINUTES,
     DEFAULT_POMODOROS_BEFORE_LONG_BREAK, SECONDS_IN_MINUTE
@@ -21,11 +22,11 @@ const defaultSettings = {
 };
 
 export function AppProvider({ children }) {
-    const { user, userId, isAuthReady } = useAuth();
+    const { userId, isAuthReady } = useAuth();
     const [toastMessage, setToastMessage] = useState(null);
     const [showBreakModal, setShowBreakModal] = useState(false);
     const [suggestedActivity, setSuggestedActivity] = useState(null);
-    const isSeeding = useRef(false); // 2. Create the lock using useRef
+    const hasInitialized = useRef(false);
 
     const settingsRefFactory = useCallback(() => userId ? settingsRef(userId) : null, [userId]);
     const { data: settingsData, error: settingsError } = useDocument(settingsRefFactory);
@@ -33,11 +34,24 @@ export function AppProvider({ children }) {
     const userActivitiesRefFactory = useCallback(() => userId ? activitiesRef(userId) : null, [userId]);
     const { data: userActivities } = useCollection(userActivitiesRefFactory);
 
+    // This line will now work because predefinedActivitiesRef is imported correctly.
     const { data: predefinedActivities } = useCollection(predefinedActivitiesRef, null);
 
     const settings = settingsData || defaultSettings;
 
-    // ... (rest of the functions are the same)
+    useEffect(() => {
+        if (isAuthReady && userId && (settingsData === null || settingsError) && !hasInitialized.current) {
+            if (settingsData === null && predefinedActivities?.length > 0) {
+                hasInitialized.current = true;
+                console.log("Running one-time setup for new user...");
+
+                const starterActivities = predefinedActivities.slice(0, 3);
+                initializeNewUser(userId, defaultSettings, starterActivities)
+                    .catch(e => console.error("Failed to initialize new user:", e));
+            }
+        }
+    }, [isAuthReady, userId, settingsData, settingsError, predefinedActivities]);
+
     const pickNewSuggestedActivity = useCallback(() => {
         const activeUserActivities = userActivities?.filter(act => act.active);
         if (activeUserActivities && activeUserActivities.length > 0) {
@@ -59,37 +73,6 @@ export function AppProvider({ children }) {
         setShowBreakModal(false);
         timer.start();
     };
-
-    useEffect(() => {
-        if (isAuthReady && userId && !settingsData && !settingsError) {
-            updateSettingsService(userId, defaultSettings).catch(e => console.error("Failed to create default settings", e));
-        }
-    }, [isAuthReady, userId, settingsData, settingsError]);
-
-    // --- CORRECTED: Onboarding Effect with Lock ---
-    useEffect(() => {
-        // 3. Add a check for the lock: `!isSeeding.current`
-        if (userId && settingsData && !settingsData.starterPackAdded && predefinedActivities?.length > 0 && !isSeeding.current) {
-            // Immediately engage the lock to prevent re-entry
-            isSeeding.current = true;
-            console.log("Adding starter pack for new user...");
-
-            const starterActivities = predefinedActivities.slice(0, 3);
-
-            const addStarterPack = async () => {
-                try {
-                    for (const activity of starterActivities) {
-                        await addActivity(userId, activity.name, activity.category);
-                    }
-                    await updateSettingsService(userId, { starterPackAdded: true });
-                } catch (e) {
-                    console.error("Failed to add starter pack", e);
-                }
-            };
-
-            addStarterPack();
-        }
-    }, [userId, settingsData, predefinedActivities]);
 
     const showToast = (message, type = 'info') => {
         setToastMessage({ message, type });

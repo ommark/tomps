@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -28,7 +28,7 @@ export const addActivity = (userId, name, category) => addDoc(activitiesRef(user
 export const updateActivity = (userId, id, data) => updateDoc(doc(db, getCollectionPath(userId, 'activities'), id), data);
 export const deleteActivity = (userId, id) => deleteDoc(doc(db, getCollectionPath(userId, 'activities'), id));
 
-// Predefined Activities (This is the new line)
+// Predefined Activities
 export const predefinedActivitiesRef = () => collection(db, 'predefined_activities');
 
 // Pomodoro Tasks
@@ -38,3 +38,26 @@ export const addPomodoroTask = (userId, task, pomodoroCount, durationSeconds) =>
 // Break Activities
 export const breakActivitiesRef = (userId) => collection(db, getCollectionPath(userId, 'breakActivitiesCompleted'));
 export const addBreakActivity = (userId, activity) => addDoc(breakActivitiesRef(userId), { activity, timestamp: serverTimestamp() });
+
+// --- ATOMIC SETUP FUNCTION ---
+export const initializeNewUser = async (userId, defaultSettings, starterActivities) => {
+    const batch = writeBatch(db);
+
+    const userSettingsRef = settingsRef(userId);
+    batch.set(userSettingsRef, { ...defaultSettings, starterPackAdded: true });
+
+    const userActivitiesRef = activitiesRef(userId);
+    for (const activity of starterActivities) {
+        // THIS IS THE CORRECTED LINE:
+        const newActivityRef = doc(userActivitiesRef); // Create a new doc reference directly in the collection
+        batch.set(newActivityRef, {
+            name: activity.name,
+            category: activity.category,
+            active: true,
+            isCustom: false,
+            timestamp: serverTimestamp()
+        });
+    }
+
+    await batch.commit();
+};
