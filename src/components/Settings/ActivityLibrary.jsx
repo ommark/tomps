@@ -1,4 +1,3 @@
-// Please replace the entire file with this code to eliminate any typos.
 import React, { useMemo, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useCollection } from '../../hooks/useFirestore';
@@ -7,7 +6,10 @@ import { predefinedActivitiesRef, activitiesRef, addActivity } from '../../servi
 export default function ActivityLibrary() {
     const { userId, showToast } = useAppContext();
 
-    const { data: predefinedActivities } = useCollection(predefinedActivitiesRef);
+    // CORRECTED LINE: We now pass `null` as the second argument to tell the hook NOT to sort.
+    const { data: predefinedActivities } = useCollection(predefinedActivitiesRef, null);
+
+    // This hook still uses the default timestamp sorting, which is correct for this collection.
     const userActivitiesRefFactory = useCallback(() => userId ? activitiesRef(userId) : null, [userId]);
     const { data: userActivities } = useCollection(userActivitiesRefFactory);
 
