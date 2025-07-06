@@ -1,0 +1,14 @@
+[
+  { "name": "7-7-7 Breathing Exercise", "category": "Mindfulness" },
+  { "name": "Do 30 push-ups", "category": "Fitness" },
+  { "name": "Do 50 squats", "category": "Fitness" },
+  { "name": "Get 5 minutes of fresh air", "category": "Well-being" },
+  { "name": "Hold a 1-minute plank", "category": "Fitness" },
+  { "name": "Kiss or hug someone", "category": "Connection" },
+  { "name": "Write 3 things you're grateful for", "category": "Mindfulness" },
+  { "name": "Think about what went well today", "category": "Reflection" },
+  { "name": "Read one page of a book", "category": "Learning" },
+  { "name": "Tidy your desk for 5 minutes", "category": "Organization" },
+  { "name": "Stretch your back and neck", "category": "Health" },
+  { "name": "Drink a full glass of water", "category": "Health" }
+]
