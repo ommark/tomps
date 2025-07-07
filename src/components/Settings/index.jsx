@@ -1,7 +1,7 @@
 import React from 'react';
-import TimerSettings from './TimerSettings';
-import ActivityManager from './ActivityManager';
-import ActivityLibrary from './ActivityLibrary'; // We are importing the new component
+import TimerSettings from './TimerSettings.jsx';
+import ActivityManager from './ActivityManager.jsx';
+import ActivityLibrary from './ActivityLibrary.jsx';
 
 export default function SettingsView() {
     return (
@@ -9,7 +9,7 @@ export default function SettingsView() {
             <h2 className="text-3xl font-bold mb-6 text-purple-400 text-center">Settings</h2>
             <TimerSettings />
             <ActivityManager />
-            <ActivityLibrary /> {/* And we are adding it here */}
+            <ActivityLibrary />
         </div>
     );
 }

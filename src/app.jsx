@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { AppProvider, useAppContext } from './context/AppContext';
-import LoadingSpinner from './components/LoadingSpinner';
-import Tabs from './components/shared/Tabs';
-import Toast from './components/shared/Toast';
-import TimerView from './components/Timer';
-import SettingsView from './components/Settings';
-import StatisticsView from './components/Statistics';
-import BreakStartModal from './components/modals/BreakStartModal';
-import WelcomeScreen from './components/WelcomeScreen';
-import FeedbackWidget from './components/FeedbackWidget'; // 1. Import the new component
+import { AppProvider, useAppContext } from './context/AppContext.jsx';
+import LoadingSpinner from './components/LoadingSpinner.jsx';
+import Tabs from './components/shared/Tabs.jsx';
+import Toast from './components/shared/Toast.jsx';
+import TimerView from './components/Timer/index.jsx';
+import SettingsView from './components/Settings/index.jsx';
+import StatisticsView from './components/Statistics/index.jsx';
+import BreakStartModal from './components/modals/BreakStartModal.jsx';
+import WelcomeScreen from './components/WelcomeScreen.jsx';
+import FeedbackWidget from './components/FeedbackWidget.jsx';
 
 function AppContent() {
     const { isAuthReady, userId, toastMessage, showWelcomeScreen } = useAppContext();
@@ -35,7 +35,7 @@ function AppContent() {
             </main>
             <Toast message={toastMessage?.message} type={toastMessage?.type} />
             <BreakStartModal />
-            <FeedbackWidget /> {/* 2. Add the widget here */}
+            <FeedbackWidget />
         </div>
     );
 }

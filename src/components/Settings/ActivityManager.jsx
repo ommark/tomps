@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { useAppContext } from '../../context/AppContext';
-import { useCollection } from '../../hooks/useFirestore';
-import { activitiesRef, addActivity, updateActivity, deleteActivity } from '../../services/firebase';
-import ConfirmationModal from '../shared/ConfirmationModal';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { useCollection } from '../../hooks/useFirestore.jsx';
+import { activitiesRef, addActivity, updateActivity, deleteActivity } from '../../services/firebase.js';
+import ConfirmationModal from '../shared/ConfirmationModal.jsx';
 
 export default function ActivityManager() {
     const { userId, showToast } = useAppContext();
@@ -12,7 +12,7 @@ export default function ActivityManager() {
     const [newActivityName, setNewActivityName] = useState('');
     const [editingActivityId, setEditingActivityId] = useState(null);
     const [editingActivityName, setEditingActivityName] = useState('');
-
+    
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [activityToDelete, setActivityToDelete] = useState(null);
 
@@ -47,7 +47,7 @@ export default function ActivityManager() {
             showToast('Failed to update activity.', 'error');
         }
     };
-
+    
     const openDeleteConfirmation = (id) => {
         setActivityToDelete(id);
         setShowConfirmModal(true);
@@ -75,7 +75,7 @@ export default function ActivityManager() {
                     placeholder="New activity name..."
                     value={newActivityName}
                     onChange={(e) => setNewActivityName(e.target.value)}
-                    className="flex-grow p-3 rounded-lg bg-gray-700 border border-gray-600 text-white"
+                    className="flex-grow p-3 rounded-lg bg-gray-700 border border-gray-600"
                 />
                 <button
                     onClick={handleAddActivity}
@@ -88,7 +88,7 @@ export default function ActivityManager() {
             <ul className="space-y-2 max-h-80 overflow-y-auto">
                 {activities?.map((activity) => (
                     <li key={activity.id} className="bg-gray-700 p-3 rounded-lg flex items-center justify-between">
-                        {editingActivityId === activity.id ? (
+                         {editingActivityId === activity.id ? (
                             <input
                                 type="text"
                                 value={editingActivityName}
@@ -118,7 +118,7 @@ export default function ActivityManager() {
                     </li>
                 ))}
             </ul>
-            <ConfirmationModal
+             <ConfirmationModal 
                 show={showConfirmModal}
                 message="Are you sure you want to delete this activity?"
                 onConfirm={confirmDelete}

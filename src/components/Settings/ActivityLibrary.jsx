@@ -1,15 +1,12 @@
 import React, { useMemo, useCallback } from 'react';
-import { useAppContext } from '../../context/AppContext';
-import { useCollection } from '../../hooks/useFirestore';
-import { predefinedActivitiesRef, activitiesRef, addActivity } from '../../services/firebase';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { useCollection } from '../../hooks/useFirestore.jsx';
+import { predefinedActivitiesRef, activitiesRef, addActivity } from '../../services/firebase.js';
 
 export default function ActivityLibrary() {
     const { userId, showToast } = useAppContext();
 
-    // CORRECTED LINE: We now pass `null` as the second argument to tell the hook NOT to sort.
     const { data: predefinedActivities } = useCollection(predefinedActivitiesRef, null);
-
-    // This hook still uses the default timestamp sorting, which is correct for this collection.
     const userActivitiesRefFactory = useCallback(() => userId ? activitiesRef(userId) : null, [userId]);
     const { data: userActivities } = useCollection(userActivitiesRefFactory);
 
@@ -43,9 +40,9 @@ export default function ActivityLibrary() {
                                 onClick={() => handleAddFromLibrary(activity)}
                                 disabled={isAdded}
                                 className={`font-bold py-2 px-4 rounded-lg transition-colors ${
-                                    isAdded
-                                        ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                                        : 'bg-teal-600 hover:bg-teal-700 text-white'
+                                    isAdded 
+                                    ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
+                                    : 'bg-teal-600 hover:bg-teal-700 text-white'
                                 }`}
                             >
                                 {isAdded ? 'Added' : 'Add'}

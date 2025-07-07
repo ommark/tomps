@@ -9,13 +9,13 @@ export default function ConfirmationModal({ show, message, onConfirm, onCancel }
                 <div className="flex justify-center space-x-4">
                     <button
                         onClick={onConfirm}
-                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-full transition duration-300"
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-full"
                     >
                         Confirm
                     </button>
                     <button
                         onClick={onCancel}
-                        className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-full transition duration-300"
+                        className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-full"
                     >
                         Cancel
                     </button>

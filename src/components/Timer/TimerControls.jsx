@@ -9,27 +9,27 @@ export default function TimerControls() {
             {!isRunning ? (
                 <button
                     onClick={start}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full"
                 >
                     Start
                 </button>
             ) : (
                 <button
                     onClick={pause}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-8 rounded-full"
                 >
                     Pause
                 </button>
             )}
             <button
                 onClick={skip}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full"
             >
                 Skip
             </button>
             <button
                 onClick={reset}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full"
             >
                 Reset
             </button>

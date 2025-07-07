@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useAppContext } from '../../context/AppContext';
-import { addPomodoroTask, addBreakActivity } from '../../services/firebase';
+import { useAppContext } from '../../context/AppContext.jsx';
+import { addPomodoroTask, addBreakActivity } from '../../services/firebase.js';
 
 export default function ActivityLogger() {
     const { showToast, pomodoroCount, settings, userId } = useAppContext();
@@ -41,3 +41,25 @@ export default function ActivityLogger() {
                         type="text"
                         placeholder="What did you work on?"
                         value={newTask}
+                        onChange={(e) => setNewTask(e.target.value)}
+                        className="flex-grow p-3 rounded-l-lg bg-gray-700 border border-gray-600"
+                    />
+                    <button onClick={handleLogTask} className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-r-lg">Log Task</button>
+                </div>
+            </div>
+            <div>
+                <h4 className="text-lg font-bold mb-2 text-gray-300">Break Activities Completed:</h4>
+                <div className="flex">
+                    <input
+                        type="text"
+                        placeholder="What did you do on your break?"
+                        value={newBreakActivity}
+                        onChange={(e) => setNewBreakActivity(e.target.value)}
+                        className="flex-grow p-3 rounded-l-lg bg-gray-700 border border-gray-600"
+                    />
+                    <button onClick={handleLogBreakActivity} className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-r-lg">Log Activity</button>
+                </div>
+            </div>
+        </div>
+    );
+}

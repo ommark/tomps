@@ -3,24 +3,20 @@ import { initializeAuth, indexedDBLocalPersistence } from 'firebase/auth';
 import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
-
-// THIS IS THE KEY FIX: Initialize Auth with persistence from the start.
 export const auth = initializeAuth(app, {
     persistence: indexedDBLocalPersistence
 });
-
 export const db = getFirestore(app);
 
-// --- The rest of the file remains the same ---
 const getDocPath = (userId, collectionName, docId) => `users/${userId}/${collectionName}/${docId}`;
 const getCollectionPath = (userId, collectionName) => `users/${userId}/${collectionName}`;
 
@@ -40,20 +36,15 @@ export const addPomodoroTask = (userId, task, pomodoroCount, durationSeconds) =>
 export const breakActivitiesRef = (userId) => collection(db, getCollectionPath(userId, 'breakActivitiesCompleted'));
 export const addBreakActivity = (userId, activity) => addDoc(breakActivitiesRef(userId), { activity, timestamp: serverTimestamp() });
 
-// ... (keep all the existing functions like updateSettings, etc.)
-
-// --- NEW FEEDBACK FUNCTION ---
 export const addFeedback = (userId, feedbackText) => {
     const feedbackCollection = collection(db, 'feedback');
     return addDoc(feedbackCollection, {
         userId: userId,
         feedback: feedbackText,
         createdAt: serverTimestamp(),
-        appVersion: '1.0-mvp' // Good practice to version your feedback
+        appVersion: '1.0-mvp'
     });
 };
-
-// ... (keep the initializeNewUser function)
 
 export const initializeNewUser = async (userId, defaultSettings, starterActivities) => {
     const batch = writeBatch(db);
@@ -62,12 +53,12 @@ export const initializeNewUser = async (userId, defaultSettings, starterActiviti
     const userActivitiesRef = activitiesRef(userId);
     for (const activity of starterActivities) {
         const newActivityRef = doc(userActivitiesRef);
-        batch.set(newActivityRef, {
-            name: activity.name,
-            category: activity.category,
-            active: true,
-            isCustom: false,
-            timestamp: serverTimestamp()
+        batch.set(newActivityRef, { 
+            name: activity.name, 
+            category: activity.category, 
+            active: true, 
+            isCustom: false, 
+            timestamp: serverTimestamp() 
         });
     }
     await batch.commit();

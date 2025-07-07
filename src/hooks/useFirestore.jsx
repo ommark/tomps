@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { onSnapshot, query, orderBy } from 'firebase/firestore';
 
-// The useCollection hook is now more flexible
 export function useCollection(refFactory, orderByField = 'timestamp', orderByDirection = 'desc') {
-    const [data, setData] = useState([]);
+    const [data, setData] = useState(null);
     const [error, setError] = useState(null);
 
     const ref = useMemo(() => refFactory ? refFactory() : null, [refFactory]);
@@ -13,8 +12,7 @@ export function useCollection(refFactory, orderByField = 'timestamp', orderByDir
             setData([]);
             return;
         }
-
-        // Only add the 'orderBy' clause if an orderByField is provided
+        
         let q = ref;
         if (orderByField) {
             q = query(ref, orderBy(orderByField, orderByDirection));
@@ -38,7 +36,6 @@ export function useCollection(refFactory, orderByField = 'timestamp', orderByDir
     return { data, error };
 }
 
-// The useDocument hook remains the same and is correct
 export function useDocument(refFactory) {
     const [data, setData] = useState(null);
     const [error, setError] = useState(null);
@@ -50,19 +47,18 @@ export function useDocument(refFactory) {
             setData(null);
             return;
         }
-
+        
         const unsubscribe = onSnapshot(ref, (doc) => {
             if (doc.exists()) {
                 setData({ id: doc.id, ...doc.data() });
                 setError(null);
             } else {
-                setData(null);
+                setData(null); 
             }
         }, (err) => {
             console.error(err);
             setError('Failed to load document.');
         });
-
         return () => unsubscribe();
     }, [ref]);
 
