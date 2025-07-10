@@ -28,30 +28,40 @@ export function AppProvider({ children }) {
     const initializationLock = useRef(false);
 
     const settingsRefFactory = useCallback(() => userId ? settingsRef(userId) : null, [userId]);
-    const { data: settingsData, error: settingsError } = useDocument(settingsRefFactory);
-    
+    // FIX: Consume the new `loading` state from our improved hook.
+    const { data: settingsData, error: settingsError, loading: settingsLoading } = useDocument(settingsRefFactory);
+
     const userActivitiesRefFactory = useCallback(() => userId ? activitiesRef(userId) : null, [userId]);
     const { data: userActivities } = useCollection(userActivitiesRefFactory);
-    
-    const { data: predefinedActivities } = useCollection(predefinedActivitiesRef, null);
+
+    // FIX: Ensure predefined activities are also handled gracefully while loading.
+    const { data: predefinedActivities, error: predefinedActivitiesError } = useCollection(predefinedActivitiesRef, null);
 
     const settings = settingsData || defaultSettings;
 
+    // FIX: This effect now waits for settings to be fully loaded before checking for a new user.
     useEffect(() => {
-        const isNewUser = settingsData === null;
-        const canInitialize = isAuthReady && userId && isNewUser && !settingsError && predefinedActivities;
+        // Wait until auth is ready, settings have been fetched, and predefined activities are loaded.
+        if (settingsLoading || !isAuthReady || !userId || !predefinedActivities) {
+            return;
+        }
 
-        if (canInitialize && !initializationLock.current) {
+        // This check is now reliable and will not run prematurely.
+        const isNewUser = settingsData === null;
+
+        if (isNewUser && !settingsError && !predefinedActivitiesError) {
+            if (initializationLock.current) return;
             initializationLock.current = true;
+
             console.log("Running one-time setup for new user...");
-            
             setShowWelcomeScreen(true);
-            
+
+            // This also ensures predefinedActivities is not null before slicing.
             const starterActivities = predefinedActivities.slice(0, 3);
             initializeNewUser(userId, defaultSettings, starterActivities)
                 .catch(e => console.error("Failed to initialize new user:", e));
         }
-    }, [isAuthReady, userId, settingsData, settingsError, predefinedActivities]);
+    }, [isAuthReady, userId, settingsData, settingsError, settingsLoading, predefinedActivities, predefinedActivitiesError]);
 
     const pickNewSuggestedActivity = useCallback(() => {
         const activeUserActivities = userActivities?.filter(act => act.active);
@@ -74,7 +84,7 @@ export function AppProvider({ children }) {
         setShowBreakModal(false);
         timer.start();
     };
-    
+
     const showToast = (message, type = 'info') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);

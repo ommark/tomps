@@ -11,13 +11,29 @@ export function useTimer(settings, onPomodoroComplete) {
     const [pomodoroCount, setPomodoroCount] = useState(0);
     const timerRef = useRef(null);
 
+    // FIX: This effect now robustly syncs the timer's display with the correct
+    // duration from settings whenever the settings are loaded or changed.
     useEffect(() => {
-        if (!isRunning) {
-            setTimeLeft(settings.workDuration);
-            setCurrentPhase(PHASES.POMODORO);
-            setPomodoroCount(0);
+        // We only adjust the time if the timer is not actively running.
+        if (isRunning) return;
+
+        switch (currentPhase) {
+            case PHASES.POMODORO:
+                setTimeLeft(settings.workDuration);
+                break;
+            case PHASES.SHORT_BREAK:
+                setTimeLeft(settings.shortBreakDuration);
+                break;
+            case PHASES.LONG_BREAK:
+                setTimeLeft(settings.longBreakDuration);
+                break;
+            default:
+                // Fallback to the work duration if phase is unknown.
+                setTimeLeft(settings.workDuration);
         }
-    }, [settings.workDuration]);
+        // This effect runs if the settings object changes or if the phase is updated while paused.
+    }, [settings, currentPhase, isRunning]);
+
 
     const showNotification = useCallback((title, body, sound) => {
         if (settings.soundEnabled) {
@@ -33,7 +49,7 @@ export function useTimer(settings, onPomodoroComplete) {
         if (currentPhase === PHASES.POMODORO) {
             newPomodoroCount++;
             setPomodoroCount(newPomodoroCount);
-            
+
             if (newPomodoroCount > 0 && newPomodoroCount % settings.pomodorosBeforeLongBreak === 0) {
                 nextPhase = PHASES.LONG_BREAK;
                 nextTime = settings.longBreakDuration;
@@ -41,7 +57,7 @@ export function useTimer(settings, onPomodoroComplete) {
                 nextPhase = PHASES.SHORT_BREAK;
                 nextTime = settings.shortBreakDuration;
             }
-            
+
             setCurrentPhase(nextPhase);
             setTimeLeft(nextTime);
             setIsRunning(false);
